@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class OrderDto {
 
-    private UUID orderId;
+    private int orderId;
 
     private Map<UUID, Integer> products;
 

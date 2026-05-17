@@ -24,6 +24,7 @@ public class KafkaService {
 
     public void sendMessages(int num) throws Exception {
         OrderDto orderDto = Instancio.of(OrderDto.class).create();
+        orderDto.setOrderId(num);
         byte[] payload = jsonMapper.writeValueAsBytes(orderDto);
         CompletableFuture<SendResult<String, byte[]>> result = kafkaTemplate.send(TOPIC, payload);
         SendResult<String, byte[]> data = result.get(3L, TimeUnit.SECONDS);
