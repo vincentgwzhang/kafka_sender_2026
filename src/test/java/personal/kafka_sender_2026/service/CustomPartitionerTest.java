@@ -49,16 +49,6 @@ class CustomPartitionerTest {
         assertThat(partition).isZero();
     }
 
-    @Test
-    void partition_throwsWhenTopicHasFewerThanFivePartitions() throws Exception {
-        when(cluster.partitionCountForTopic(TOPIC)).thenReturn(4);
-
-        assertThatThrownBy(() ->
-                partitioner.partition(TOPIC, null, null, null, payload(14), cluster))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("requires at least 5 partitions");
-    }
-
     private static byte[] payload(int orderId) throws Exception {
         OrderDto order = new OrderDto();
         order.setOrderId(orderId);

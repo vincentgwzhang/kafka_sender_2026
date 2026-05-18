@@ -15,10 +15,13 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import personal.kafka_sender_2026.dto.OrderDto;
+import personal.kafka_sender_2026.kafka.KafkaMessageHeaders;
+import personal.kafka_sender_2026.kafka.OrderMessageConsumer;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,19 +58,20 @@ class KafkaServiceTest {
     private void assertMessageOnPartition(int orderId, int expectedPartition) throws Exception {
         try (Consumer<String, byte[]> consumer = createConsumer()) {
             embeddedKafka.consumeFromAnEmbeddedTopic(consumer, true, ORDER_TOPIC);
-            kafkaService.sendMessages(orderId);
+            UUID traceId = kafkaService.sendMessages(orderId);
 
             ConsumerRecord<String, byte[]> record =
                     KafkaTestUtils.getSingleRecord(consumer, ORDER_TOPIC, Duration.ofSeconds(10));
 
             assertThat(record.partition()).isEqualTo(expectedPartition);
+            assertThat(OrderMessageConsumer.headerAsUtf8(record, KafkaMessageHeaders.TRACE_ID)).isEqualTo(traceId.toString());
             OrderDto received = jsonMapper.readValue(record.value(), OrderDto.class);
             assertThat(received.getOrderId()).isEqualTo(orderId);
         }
     }
 
     private Consumer<String, byte[]> createConsumer() {
-        Map<String, Object> props = KafkaTestUtils.consumerProps("kafka-service-test", "true", embeddedKafka);
+        Map<String, Object> props = KafkaTestUtils.consumerProps(embeddedKafka, "kafka-service-test", true);
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
         return new DefaultKafkaConsumerFactory<String, byte[]>(props).createConsumer();
