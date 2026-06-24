@@ -52,6 +52,8 @@ public class KafkaService {
                 traceId.toString().getBytes(StandardCharsets.UTF_8));
 
         CompletableFuture<SendResult<String, byte[]>> result = kafkaTemplate.send(record);
+
+        // 如果正常回 SendResult 就证明发送成功了。因为不成功会抛出 Exception
         SendResult<String, byte[]> data = result.get(3L, TimeUnit.SECONDS);
         log.info(
                 "Sent traceId={}, orderId={}, partition={}, offset={}",

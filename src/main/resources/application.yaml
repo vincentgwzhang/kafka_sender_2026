@@ -15,13 +15,14 @@ spring:
       auto-startup: true
 
     producer:
+      # 0 代表不等待， 1代表 leader broker 写入就成功, ALL/-1 代表leader + ISR 副本 确认成功
       acks: all
-      retries: 0
+      retries: 5 # 表示 producer 发送失败后，Kafka 客户端自动重试的次数。
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         max.in.flight.requests.per.connection: 1
-        enable.idempotence: false
+        enable.idempotence: true # 表示是否开启 producer 幂等发送。
   main:
     banner-mode: off
 
